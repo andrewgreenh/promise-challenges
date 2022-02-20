@@ -1,0 +1,16 @@
+{
+  "name": "promise-challenges",
+  "version": "0.0.1",
+  "description": "A set of small challenges around promises",
+  "main": "index.js",
+  "author": "Andreas Roth",
+  "license": "MIT",
+  "private": false,
+  "scripts": {
+    "test": "vitest"
+  },
+  "dependencies": {
+    "typescript": "^4.5.5",
+    "vitest": "^0.4.2"
+  }
+}
