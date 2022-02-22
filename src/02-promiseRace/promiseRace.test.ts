@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { sleep } from "../01-sleep/sleep";
+import { flushPromises } from "../utils/flushPromises";
 import { promiseRace } from "./promiseRace";
 
 describe("promiseRace", () => {
@@ -15,6 +16,15 @@ describe("promiseRace", () => {
     const result = promiseRace([]);
 
     expect(result).toBeInstanceOf(Promise);
+  });
+
+  it("should never resolve when passed no promises", async () => {
+    const resultHandler = vi.fn();
+
+    promiseRace([]).then(resultHandler);
+
+    await flushPromises();
+    expect(resultHandler).not.toHaveBeenCalled();
   });
 
   it("should resolve with the same value as a single promise", async () => {

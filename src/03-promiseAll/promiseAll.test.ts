@@ -1,8 +1,23 @@
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import {
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 import { sleep } from "../01-sleep/sleep";
+import { flushPromises } from "../utils/flushPromises";
 import { promiseAll } from "./promiseAll";
 
 describe("promiseAll", () => {
+  const resultHandler = vi.fn();
+
+  beforeEach(() => {
+    resultHandler.mockClear();
+  });
+
   beforeAll(() => {
     vi.useFakeTimers();
   });
@@ -11,54 +26,56 @@ describe("promiseAll", () => {
     vi.useRealTimers();
   });
 
-  it("should settle immediately when no promises are provided", () => {
-    const result = promiseAll([]);
+  it("should settle immediately when no promises are provided", async () => {
+    promiseAll([]).then(resultHandler);
 
-    expect(result).resolves.toEqual([]);
+    await flushPromises();
+
+    expect(resultHandler).toHaveBeenCalledWith([]);
   });
 
-  it("should settle immediately with the resolved values", () => {
-    const result = promiseAll([Promise.resolve(1), Promise.resolve(2)]);
+  it("should settle immediately with the resolved values", async () => {
+    promiseAll([Promise.resolve(1), Promise.resolve(2)]).then(resultHandler);
 
-    expect(result).resolves.toEqual([1, 2]);
+    await flushPromises();
+    expect(resultHandler).toHaveBeenCalledWith([1, 2]);
   });
 
   it("should settle only when all promises resolved", async () => {
-    const handler = vi.fn().mockImplementation((x) => x);
-
-    const result = promiseAll([
+    promiseAll([
       Promise.resolve(1),
       Promise.resolve(2),
       sleep(1000).then(() => 3),
-    ]).then(handler);
+    ]).then(resultHandler);
 
-    await Promise.resolve();
+    await flushPromises();
 
-    vi.advanceTimersByTime(500);
-
-    await Promise.resolve();
-
-    expect(handler).not.toHaveBeenCalled();
+    expect(resultHandler).not.toHaveBeenCalled();
 
     vi.advanceTimersByTime(500);
+    await flushPromises();
 
-    await expect(result).resolves.toEqual([1, 2, 3]);
+    expect(resultHandler).not.toHaveBeenCalled();
 
-    expect(handler).toHaveBeenCalled();
+    vi.advanceTimersByTime(500);
+    await flushPromises();
+
+    expect(resultHandler).toHaveBeenCalledWith([1, 2, 3]);
   });
 
   it("should reject when one promise rejects", async () => {
-    const result = promiseAll([
+    promiseAll([
       Promise.resolve(1),
       Promise.resolve(2),
       sleep(1000).then(() => {
         throw new Error("Boom!");
       }),
-    ]);
+    ]).catch(resultHandler);
 
     vi.runAllTimers();
+    await flushPromises();
 
-    await expect(result).rejects.toEqual(new Error("Boom!"));
+    expect(resultHandler).toHaveBeenCalledWith(new Error("Boom!"));
   });
 
   it("should not use Promise.all", async () => {

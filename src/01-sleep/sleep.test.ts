@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { flushPromises } from "../utils/flushPromises";
 import { sleep } from "./sleep";
 
 describe("sleep", () => {
@@ -24,16 +25,14 @@ describe("sleep", () => {
     expect(afterSleep).not.toHaveBeenCalled();
 
     vi.advanceTimersByTime(500);
-    await Promise.resolve();
+    await flushPromises();
 
     expect(afterSleep).not.toHaveBeenCalled();
 
     vi.advanceTimersByTime(500);
-    await Promise.resolve();
+    await flushPromises();
 
     expect(afterSleep).toHaveBeenCalledOnce();
     expect(afterSleep).toHaveBeenCalledWith(undefined);
-
-    return promise;
   });
 });
