@@ -1,9 +1,26 @@
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import {
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 import { sleep } from "../01-sleep/sleep";
 import { flushPromises } from "../utils/flushPromises";
 import { promiseRace } from "./promiseRace";
 
 describe("promiseRace", () => {
+  const resultHandler = vi.fn();
+  const failHandler = vi.fn();
+  const handlers = [resultHandler, failHandler] as const;
+
+  beforeEach(() => {
+    resultHandler.mockClear();
+    failHandler.mockClear();
+  });
+
   beforeAll(() => {
     vi.useFakeTimers();
   });
@@ -19,58 +36,73 @@ describe("promiseRace", () => {
   });
 
   it("should never resolve when passed no promises", async () => {
-    const resultHandler = vi.fn();
-
-    promiseRace([]).then(resultHandler);
+    promiseRace([]).then(...handlers);
 
     await flushPromises();
     expect(resultHandler).not.toHaveBeenCalled();
+    expect(failHandler).not.toHaveBeenCalled();
   });
 
   it("should resolve with the same value as a single promise", async () => {
-    const promise = promiseRace([Promise.resolve(1)]);
+    promiseRace([Promise.resolve(1)]).then(...handlers);
 
-    await expect(promise).resolves.toBe(1);
+    await flushPromises();
+
+    expect(resultHandler).toHaveBeenCalledWith(1);
+    expect(failHandler).not.toHaveBeenCalled();
   });
 
   it("should resolve to the fastest promise", async () => {
-    const promise = promiseRace([
-      sleep(2000).then(() => 1),
-      sleep(1000).then(() => 2),
-    ]);
+    promiseRace([sleep(2000).then(() => 1), sleep(1000).then(() => 2)]).then(
+      ...handlers
+    );
 
     vi.runAllTimers();
-    await expect(promise).resolves.toBe(2);
+    await flushPromises();
+
+    expect(resultHandler).toHaveBeenCalledOnce();
+    expect(resultHandler).toHaveBeenCalledWith(2);
+    expect(failHandler).not.toHaveBeenCalled();
   });
 
   it("should resolve to the fastest promise even if a slower one throws", async () => {
-    const promise = promiseRace([
+    promiseRace([
       sleep(2000).then(() => {
         throw new Error("Boom");
       }),
       sleep(1000).then(() => 2),
-    ]);
+    ]).then(...handlers);
 
     vi.runAllTimers();
-    await expect(promise).resolves.toBe(2);
+    await flushPromises();
+
+    expect(resultHandler).toHaveBeenCalledWith(2);
+    expect(resultHandler).toHaveBeenCalledOnce();
+    expect(failHandler).not.toHaveBeenCalled();
   });
 
   it("should reject when the first settled promise rejects", async () => {
-    const promise = promiseRace([
+    promiseRace([
       sleep(1000).then(() => {
         throw new Error("Boom!");
       }),
       sleep(2000).then(() => 2),
-    ]);
+    ]).then(...handlers);
 
     vi.runAllTimers();
-    await expect(promise).rejects.toEqual(new Error("Boom!"));
+    await flushPromises();
+
+    expect(resultHandler).not.toHaveBeenCalled();
+    expect(failHandler).toHaveBeenCalledOnce();
+    expect(failHandler).toHaveBeenCalledWith(new Error("Boom!"));
   });
 
   it("should not use Promise.race", async () => {
     const spy = vi.spyOn(Promise, "race");
 
-    await promiseRace([Promise.resolve(1)]);
+    promiseRace([Promise.resolve(1)]).then(...handlers);
+
+    await flushPromises();
 
     expect(spy).not.toHaveBeenCalled();
   });

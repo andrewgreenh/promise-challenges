@@ -1,8 +1,25 @@
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import {
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 import { flushPromises } from "../utils/flushPromises";
 import { sleep } from "./sleep";
 
 describe("sleep", () => {
+  const resultHandler = vi.fn();
+  const failHandler = vi.fn();
+  const handlers = [resultHandler, failHandler] as const;
+
+  beforeEach(() => {
+    resultHandler.mockClear();
+    failHandler.mockClear();
+  });
+
   beforeAll(() => {
     vi.useFakeTimers();
   });
@@ -18,21 +35,22 @@ describe("sleep", () => {
   });
 
   it("should wait for the specified amount of time", async () => {
-    const afterSleep = vi.fn();
+    sleep(1000).then(...handlers);
 
-    const promise = sleep(1000).then(afterSleep);
-
-    expect(afterSleep).not.toHaveBeenCalled();
-
-    vi.advanceTimersByTime(500);
-    await flushPromises();
-
-    expect(afterSleep).not.toHaveBeenCalled();
+    expect(resultHandler).not.toHaveBeenCalled();
+    expect(failHandler).not.toHaveBeenCalled();
 
     vi.advanceTimersByTime(500);
     await flushPromises();
 
-    expect(afterSleep).toHaveBeenCalledOnce();
-    expect(afterSleep).toHaveBeenCalledWith(undefined);
+    expect(resultHandler).not.toHaveBeenCalled();
+    expect(failHandler).not.toHaveBeenCalled();
+
+    vi.advanceTimersByTime(500);
+    await flushPromises();
+
+    expect(resultHandler).toHaveBeenCalledOnce();
+    expect(resultHandler).toHaveBeenCalledWith(undefined);
+    expect(failHandler).not.toHaveBeenCalled();
   });
 });
