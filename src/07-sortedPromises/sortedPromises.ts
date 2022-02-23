@@ -4,7 +4,7 @@ export function sortedPromises<TValue>(
   promises: Promise<TValue>[]
 ): AsyncIterableIterator<TValue> {
   let handle = promiseHandle<TValue>();
-  let toYield = [handle];
+  let toYield = [handle.promise];
   let yielded = 0;
 
   for (const p of promises) {
@@ -12,19 +12,19 @@ export function sortedPromises<TValue>(
       (x) => {
         handle.resolve(x);
         handle = promiseHandle();
-        toYield.push(handle);
+        toYield.push(handle.promise);
       },
       (x) => {
         handle.reject(x);
         handle = promiseHandle();
-        toYield.push(handle);
+        toYield.push(handle.promise);
       }
     );
   }
 
   async function* generator() {
     while (yielded < promises.length) {
-      yield toYield.shift()!.promise;
+      yield toYield.shift()!;
       yielded++;
     }
   }
