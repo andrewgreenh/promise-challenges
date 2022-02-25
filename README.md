@@ -20,6 +20,10 @@ Each challenge consists of implementing one function where the signature is alre
 
 To run all tests, run `yarn test` but you can also run tests for a specific challenge by running `yarn test 01` for all test cases for challenge 01-sleep.
 
+## Solutions
+
+If you get stuck, feel free to peak at the solutions on the [solution branch](https://github.com/andrewgreenh/promise-challenges/tree/solutions)
+
 ## The challenges
 
 ### 01-sleep
