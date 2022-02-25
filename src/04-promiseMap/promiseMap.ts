@@ -38,26 +38,5 @@ export function promiseMap<TItem, TOutput>(
   items: TItem[],
   callback: (item: TItem, index: number, items: TItem[]) => Promise<TOutput>
 ): Promise<TOutput[]> {
-  return new Promise((resolve, reject) => {
-    const queue = items.map((item, index) => ({ item, index }));
-    const initialChunk = queue.slice(0, maxConcurrency);
-    const remainingItems = queue.slice(maxConcurrency);
-    const results: TOutput[] = [];
-
-    function pull({ item, index }: typeof initialChunk[number]) {
-      callback(item, index, items).then(
-        (result) => {
-          results[index] = result;
-          const next = remainingItems.shift();
-          if (!next) resolve(results);
-          else pull(next);
-        },
-        (err) => {
-          reject(err);
-        }
-      );
-    }
-
-    for (const element of initialChunk) pull(element);
-  });
+  throw new Error("Not implemented yet");
 }

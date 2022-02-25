@@ -1,5 +1,3 @@
-import { promiseHandle } from "../06-promiseHandle/promiseHandle";
-
 /**
  * Creates an [asyncIterable](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/asyncIterator)
  * that yields promises in the order of their resolve events.
@@ -24,31 +22,11 @@ import { promiseHandle } from "../06-promiseHandle/promiseHandle";
 export function sortedPromises<TValue>(
   promises: Promise<TValue>[]
 ): AsyncIterable<TValue> {
-  let handle = promiseHandle<TValue>();
-  let toYield = [handle.promise];
-  let yielded = 0;
-
-  for (const p of promises) {
-    p.then(
-      (x) => {
-        handle.resolve(x);
-        handle = promiseHandle();
-        toYield.push(handle.promise);
-      },
-      (x) => {
-        handle.reject(x);
-        handle = promiseHandle();
-        toYield.push(handle.promise);
-      }
-    );
-  }
+  throw new Error("Not implemented yet");
 
   return {
     async *[Symbol.asyncIterator]() {
-      while (yielded < promises.length) {
-        yield toYield.shift()!;
-        yielded++;
-      }
+      throw new Error("Not implemented yet");
     },
   };
 }

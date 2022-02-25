@@ -26,25 +26,5 @@
 export function promiseAll<T extends readonly unknown[] | []>(
   promises: T
 ): Promise<{ -readonly [P in keyof T]: Awaited<T[P]> }> {
-  return new Promise((resolve, reject) => {
-    const results: any = [];
-    let resolvedCount = 0;
-    if (resolvedCount === promises.length) resolve(results);
-
-    for (let i = 0; i < promises.length; i++) {
-      const promise: any = promises[i];
-      promise.then(
-        (result: any) => {
-          results[i] = result;
-          resolvedCount++;
-          if (resolvedCount === promises.length) {
-            resolve(results);
-          }
-        },
-        (error: any) => {
-          reject(error);
-        }
-      );
-    }
-  });
+  throw new Error("Not implemented yet");
 }
