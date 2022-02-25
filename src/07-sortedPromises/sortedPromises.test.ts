@@ -22,12 +22,14 @@ describe("sortedPromises", () => {
     vi.useRealTimers();
 
     for await (const result of sortedPromises([
-      resolveAfter(30, 3),
-      resolveAfter(20, 2),
-      resolveAfter(10, 1),
+      resolveAfter(30, 3).catch(failHandler),
+      resolveAfter(20, 2).catch(failHandler),
+      resolveAfter(10, 1).catch(failHandler),
     ])) {
       resultHandler(result);
     }
+
+    expect(failHandler).not.toHaveBeenCalled();
 
     expect(resultHandler).nthCalledWith(1, 1);
     expect(resultHandler).nthCalledWith(2, 2);
@@ -51,9 +53,9 @@ describe("sortedPromises", () => {
 
   it("should yield promises in order of resolves", async () => {
     const iterable = sortedPromises([
-      resolveAfter(3000, 3),
-      resolveAfter(2000, 2),
-      resolveAfter(1000, 1),
+      resolveAfter(3000, 3).catch(failHandler),
+      resolveAfter(2000, 2).catch(failHandler),
+      resolveAfter(1000, 1).catch(failHandler),
     ]);
     const iterator = iterable[Symbol.asyncIterator]();
 
@@ -89,14 +91,16 @@ describe("sortedPromises", () => {
     vi.advanceTimersByTime(1000);
     await flushPromises();
 
+    expect(failHandler).not.toHaveBeenCalled();
+
     expect(resultHandler).toHaveBeenCalledTimes(4);
     expect(resultHandler).nthCalledWith(4, { done: true, value: undefined });
   });
 
   it("should yield correct promises even when pulling too fast", async () => {
     const iterable = sortedPromises([
-      resolveAfter(2000, 2),
-      resolveAfter(1000, 1),
+      resolveAfter(2000, 2).catch(failHandler),
+      resolveAfter(1000, 1).catch(failHandler),
     ]);
     const iterator = iterable[Symbol.asyncIterator]();
 
@@ -116,14 +120,16 @@ describe("sortedPromises", () => {
     vi.advanceTimersByTime(1000);
     await flushPromises();
 
+    expect(failHandler).not.toHaveBeenCalled();
+
     expect(resultHandler).toHaveBeenCalledTimes(2);
     expect(resultHandler).nthCalledWith(2, { done: false, value: 2 });
   });
 
   it("should maintain order even when pulling after all promises resolved", async () => {
     const iterable = sortedPromises([
-      resolveAfter(2000, 2),
-      resolveAfter(1000, 1),
+      resolveAfter(2000, 2).catch(failHandler),
+      resolveAfter(1000, 1).catch(failHandler),
     ]);
     const iterator = iterable[Symbol.asyncIterator]();
     await flushPromises();
@@ -142,5 +148,7 @@ describe("sortedPromises", () => {
     await flushPromises();
     expect(resultHandler).toHaveBeenCalledTimes(2);
     expect(resultHandler).nthCalledWith(2, { done: false, value: 2 });
+
+    expect(failHandler).not.toHaveBeenCalled();
   });
 });

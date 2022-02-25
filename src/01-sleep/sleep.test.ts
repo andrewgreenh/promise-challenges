@@ -29,7 +29,7 @@ describe("sleep", () => {
   });
 
   it("should return a promise", () => {
-    const result = sleep(0);
+    const result = sleep(0).then(...handlers);
 
     expect(result).toBeInstanceOf(Promise);
   });

@@ -45,12 +45,17 @@ export function promiseMap<TItem, TOutput>(
     const results: TOutput[] = [];
 
     function pull({ item, index }: typeof initialChunk[number]) {
-      callback(item, index, items).then((result) => {
-        results[index] = result;
-        const next = remainingItems.shift();
-        if (!next) resolve(results);
-        else pull(next);
-      });
+      callback(item, index, items).then(
+        (result) => {
+          results[index] = result;
+          const next = remainingItems.shift();
+          if (!next) resolve(results);
+          else pull(next);
+        },
+        (err) => {
+          reject(err);
+        }
+      );
     }
 
     for (const element of initialChunk) pull(element);

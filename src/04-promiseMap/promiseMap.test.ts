@@ -13,8 +13,12 @@ import { promiseMap } from "./promiseMap";
 
 describe("promiseMap", () => {
   const resultHandler = vi.fn();
+  const failHandler = vi.fn();
+  const handlers = [resultHandler, failHandler] as const;
+
   beforeEach(() => {
     resultHandler.mockClear();
+    failHandler.mockClear();
   });
 
   beforeAll(() => {
@@ -26,9 +30,7 @@ describe("promiseMap", () => {
   });
 
   it("should map correctly", async () => {
-    promiseMap(1, [1, 2, 3], (i) => Promise.resolve(i ** 2)).then(
-      resultHandler
-    );
+    promiseMap(1, [1, 2, 3], (i) => Promise.resolve(i ** 2)).then(...handlers);
 
     await flushPromises();
 
@@ -42,7 +44,7 @@ describe("promiseMap", () => {
 
     const items = [1, 2, 3];
 
-    promiseMap(1, items, mapper);
+    promiseMap(1, items, mapper).then(...handlers);
 
     await flushPromises();
 
@@ -57,7 +59,7 @@ describe("promiseMap", () => {
       return num ** 2;
     });
 
-    promiseMap(1, [1, 2, 3], square).then(resultHandler);
+    promiseMap(1, [1, 2, 3], square).then(...handlers);
 
     expect(square).toHaveBeenCalledTimes(1);
 
@@ -82,7 +84,7 @@ describe("promiseMap", () => {
       return num ** 2;
     });
 
-    promiseMap(2, [1, 2, 3, 4, 5], square).then(resultHandler);
+    promiseMap(2, [1, 2, 3, 4, 5], square).then(...handlers);
 
     expect(square).toHaveBeenCalledTimes(2);
 
@@ -109,7 +111,7 @@ describe("promiseMap", () => {
     });
     const items = [1, 2, 3, 4, 5];
 
-    promiseMap(2, items, square).then(resultHandler);
+    promiseMap(2, items, square).then(...handlers);
 
     // First to indices should be called sync.
     expect(square).toHaveBeenCalledTimes(2);
