@@ -35,7 +35,8 @@ describe("sortedPromises", () => {
   });
 
   it("should directly be done when passed no promises", async () => {
-    const iterator = sortedPromises([]);
+    const iterable = sortedPromises([]);
+    const iterator = iterable[Symbol.asyncIterator]();
 
     iterator.next().then(...handlers);
 
@@ -49,11 +50,12 @@ describe("sortedPromises", () => {
   });
 
   it("should yield promises in order of resolves", async () => {
-    const iterator = sortedPromises([
+    const iterable = sortedPromises([
       resolveAfter(3000, 3),
       resolveAfter(2000, 2),
       resolveAfter(1000, 1),
     ]);
+    const iterator = iterable[Symbol.asyncIterator]();
 
     iterator.next().then(...handlers);
 
@@ -92,10 +94,11 @@ describe("sortedPromises", () => {
   });
 
   it("should yield correct promises even when pulling too fast", async () => {
-    const iterator = sortedPromises([
+    const iterable = sortedPromises([
       resolveAfter(2000, 2),
       resolveAfter(1000, 1),
     ]);
+    const iterator = iterable[Symbol.asyncIterator]();
 
     iterator.next().then(...handlers);
     iterator.next().then(...handlers);
@@ -118,10 +121,11 @@ describe("sortedPromises", () => {
   });
 
   it("should maintain order even when pulling after all promises resolved", async () => {
-    const iterator = sortedPromises([
+    const iterable = sortedPromises([
       resolveAfter(2000, 2),
       resolveAfter(1000, 1),
     ]);
+    const iterator = iterable[Symbol.asyncIterator]();
     await flushPromises();
 
     vi.advanceTimersByTime(1000);
